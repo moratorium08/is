@@ -1,0 +1,153 @@
+	library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_unsigned.all;
+use IEEE.std_logic_arith.all;
+entity Collatz is
+port(
+    SysClk  :in std_logic:='0';
+	 Go :in std_logic := '0';
+	 OutMX1     :out std_logic_vector(17 downto 0):=(others => '0');
+	 OutMX2     :out std_logic_vector(17 downto 0):=(others => '0');
+	 OutMX3     :out std_logic_vector(17 downto 0):=(others => '0');
+	 OutMX4     :out std_logic_vector(17 downto 0):=(others => '0');
+	 OutLEN1    :out std_logic_vector(7 downto 0) :=(others => '0');
+	 OutLEN2    :out std_logic_vector(7 downto 0) :=(others => '0');
+	 OutLEN3    :out std_logic_vector(7 downto 0) :=(others => '0');
+	 OutLEN4    :out std_logic_vector(7 downto 0) :=(others => '0');
+	 OutNAME1    :out std_logic_vector(9 downto 0) :=(others => '0');
+	 OutNAME2    :out std_logic_vector(9 downto 0) :=(others => '0');
+	 OutNAME3    :out std_logic_vector(9 downto 0) :=(others => '0');
+	 OutNAME4    :out std_logic_vector(9 downto 0) :=(others => '0')
+    );
+end Collatz;
+architecture RTL of Collatz is
+    signal data     :std_logic_vector(17 downto 0) :=(others => '0') ;
+    signal index     :std_logic_vector(9 downto 0) :=(others => '0') ;
+    signal mx     :std_logic_vector(17 downto 0) :=(others => '0') ;
+    signal cnt     :std_logic_vector(7 downto 0) :=(others => '0') ;
+	 type T_TRACE is array(1 to 2048) of std_logic_vector(10 downto 0);
+	 signal TRACE : T_TRACE := (others => (others => '0'));
+	 type T_MEMMX is array(1 to 2048) of std_logic_vector(17 downto 0);
+	 signal MEMMX : T_MEMMX := (others => (others => '0'));
+	 type T_MEMLEN is array(1 to 2048) of std_logic_vector(15 downto 0);
+	 signal MEMLEN : T_MEMLEN := (others => (others => '0'));
+	 
+	 signal mx1     :std_logic_vector(17 downto 0):=(others => '0');
+	 signal mx2     :std_logic_vector(17 downto 0):=(others => '0');
+	 signal mx3     :std_logic_vector(17 downto 0):=(others => '0');
+	 signal mx4     :std_logic_vector(17 downto 0):=(others => '0');
+	 signal len1    :std_logic_vector(7 downto 0) :=(others => '0');
+	 signal len2    :std_logic_vector(7 downto 0) :=(others => '0');
+	 signal len3    :std_logic_vector(7 downto 0) :=(others => '0');
+	 signal len4    :std_logic_vector(7 downto 0) :=(others => '0');
+	 signal name1    :std_logic_vector(9 downto 0) :=(others => '0');
+	 signal name2    :std_logic_vector(9 downto 0) :=(others => '0');
+	 signal name3    :std_logic_vector(9 downto 0) :=(others => '0');
+	 signal name4    :std_logic_vector(9 downto 0) :=(others => '0');
+begin
+
+    process begin
+    wait until rising_edge(SysClk);
+	     if Go='0' then
+			data  <= "000000000000000001";
+			index <= "0000000001";
+			mx    <= "000000000000000000";
+			cnt   <= "00000000";
+		  else
+		     if data="0000000000000001" then
+					index <= index + 2;
+					data <= "00000000" & (index + 2);
+					mx <= "000000000000000000";
+					cnt   <= "00000000";
+					if mx1 = mx then
+					  if len1 < cnt then
+					   len1 <= cnt;
+						name1 <= index;
+					  end if;
+				   elsif mx2 = mx then
+					 if len2 < cnt then
+					   len2 <= cnt;
+						name2 <= index;
+					 end if;
+
+				   elsif mx3 = mx then
+					 if len3 < cnt then
+					   len3 <= cnt;
+						name3 <= index;
+					 end if;
+				   elsif mx4 = mx then
+					 if len4 < cnt then
+					   len4 <= cnt;
+						name4 <= index;
+					 end if;
+					elsif mx1 < mx then
+					 mx4 <= mx3;
+					 mx3 <= mx2;
+					 mx2 <= mx1;
+					 len4 <= len3;
+					 len3 <= len2;
+					 len2 <= len1;
+					 name4 <= name3;
+					 name3 <= name2;
+					 name2 <= name1;
+					 mx1 <= mx;
+					 len1 <= cnt;
+					 name1 <= index;
+					elsif mx2 < mx then
+					 mx4 <= mx3;
+					 mx3 <= mx2;
+					 len4 <= len3;
+					 len3 <= len2;
+					 name4 <= name3;
+					 name3 <= name2;
+					 mx2 <= mx;
+					 len2 <= cnt;
+					 name2 <= index;
+					elsif mx3 < mx then
+					 mx4 <= mx3;
+					 len4 <= len3;
+					 name4 <= name3;
+					 mx3 <= mx;
+					 len3 <= cnt;
+					 name3 <= index;
+					elsif mx4 < mx then
+					 mx4 <= mx;
+					 len4 <= cnt;
+					 name4 <= index;
+					end if;
+			  else
+					--if data > "0000011111111111" then
+					if data=data then
+						if data="0000000000000010" then 
+						elsif data(1 downto 0) = "00" then
+							cnt <= cnt + 2;
+							data <= "00" & data(17 downto 2);
+						elsif data(1 downto 0) = "01" then
+							cnt <= cnt + 3;
+							data <= ('0' & data(17 downto 2) & '1') + ("00" & data(17 downto 2));
+						elsif data(1 downto 0) = "10" then
+							cnt <= cnt + 3;
+							data <= ('0' & data(17 downto 2) & '0') + ("00" & data(17 downto 2)) + "0000000000000010";
+						elsif data(1 downto 0) = "11" then
+							cnt <= cnt + 4;
+							data <= (data(16 downto 2) & "000") + ("00" & data(17 downto 2)) + "0000000000001000";
+						end if;
+					end if;
+			  end if;
+		  end if;
+	end process;
+
+		  OutMX1 <= mx1;
+		  OutMX2 <= mx2;
+		  OutMX3 <= mx3;
+		  OutMX4 <= mx4;
+		  OutLEN1 <= len1;
+		  OutLEN2 <= len2;
+		  OutLEN3 <= len3;
+		  OutLEN4 <= len4;
+		  OutNAME1 <= name1;
+		  OutNAME2 <= name2;
+		  OutNAME3 <= name3;
+		  OutNAME4 <= name4;
+end RTL;
+
