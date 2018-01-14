@@ -6,6 +6,10 @@ entity Collatz is
 port(
     SysClk  :in std_logic:='0';
 	 Go :in std_logic := '0';
+	 OutCNT :out std_logic_vector(7 downto 0) :=(others => '0') ;
+	 OutINDEX     :out std_logic_vector(9 downto 0) :=(others => '0') ;
+	 OutDATA     :out std_logic_vector(17 downto 0) :=(others => '0') ;
+
 	 OutMX1     :out std_logic_vector(17 downto 0):=(others => '0');
 	 OutMX2     :out std_logic_vector(17 downto 0):=(others => '0');
 	 OutMX3     :out std_logic_vector(17 downto 0):=(others => '0');
@@ -21,6 +25,7 @@ port(
     );
 end Collatz;
 architecture RTL of Collatz is
+	 signal done : std_logic := '0';
     signal data     :std_logic_vector(17 downto 0) :=(others => '0') ;
     signal index     :std_logic_vector(9 downto 0) :=(others => '0') ;
     signal mx     :std_logic_vector(17 downto 0) :=(others => '0') ;
@@ -53,8 +58,13 @@ begin
 			index <= "0000000001";
 			mx    <= "000000000000000000";
 			cnt   <= "00000000";
+		  elsif done='1' then
+		  -- pass
 		  else
-		     if data="0000000000000001" then
+		     if data="000000000000000001" then
+				   if index = "1111111111" then
+					 done <= '1';
+					end if;
 					index <= index + 2;
 					data <= "00000000" & (index + 2);
 					mx <= "000000000000000000";
@@ -118,17 +128,30 @@ begin
 			  else
 					--if data > "0000011111111111" then
 					if data=data then
-						if data="0000000000000010" then 
+						if data="000000000000000010" then 
+						  cnt <= cnt + 1;
+						  data <= "000000000000000001";
 						elsif data(1 downto 0) = "00" then
 							cnt <= cnt + 2;
 							data <= "00" & data(17 downto 2);
 						elsif data(1 downto 0) = "01" then
+						  if mx < (data + (data(16 downto 0) & '1')) then
+							 mx <= data + (data(17 downto 1) & '1');
+						  end if;
 							cnt <= cnt + 3;
 							data <= ('0' & data(17 downto 2) & '1') + ("00" & data(17 downto 2));
 						elsif data(1 downto 0) = "10" then
+						  if mx < ( ('0' & data(17 downto 1)) + (data(17 downto 1) & '1')) then
+							 mx <= ('0' & data(17 downto 1)) + (data(17 downto 1) & '1');
+						  end if;
 							cnt <= cnt + 3;
 							data <= ('0' & data(17 downto 2) & '0') + ("00" & data(17 downto 2)) + "0000000000000010";
 						elsif data(1 downto 0) = "11" then
+						   if mx < ( ('0' & data(17 downto 1)) + ('0' & data(16 downto 0))
+							        + (data(17 downto 1) & '0') + (data(16 downto 0) & '1')) then 
+								mx <= ( ('0' & data(17 downto 1)) + ('0' & data(16 downto 0))
+							        + (data(17 downto 1) & '0') + (data(16 downto 0) & '1'));
+							end if;
 							cnt <= cnt + 4;
 							data <= (data(16 downto 2) & "000") + ("00" & data(17 downto 2)) + "0000000000001000";
 						end if;
@@ -136,7 +159,9 @@ begin
 			  end if;
 		  end if;
 	end process;
-
+		  OutCNT <= cnt;
+		  OutINDEX <= index;
+		  OutDATA <= data;
 		  OutMX1 <= mx1;
 		  OutMX2 <= mx2;
 		  OutMX3 <= mx3;
