@@ -8,6 +8,11 @@ end TopCollatz;
 architecture SIM of TopCollatz is
     signal 		SysClk   :std_logic:= '0';
     signal		Go   :std_logic:= '0';
+	 signal     OutCNT  :std_logic_vector(7 downto 0) :=(others => '0') ;
+	 signal OutINDEX     : std_logic_vector(9 downto 0) :=(others => '0') ;
+	 signal OutDATA     : std_logic_vector(17 downto 0) :=(others => '0') ;
+	 signal OutMX     : std_logic_vector(17 downto 0) :=(others => '0') ;
+
 	 signal	 	OutMX1     : std_logic_vector(17 downto 0):=(others => '0');
 	 signal		OutMX2     : std_logic_vector(17 downto 0):=(others => '0');
 	 signal		OutMX3     : std_logic_vector(17 downto 0):=(others => '0');
@@ -25,6 +30,11 @@ architecture SIM of TopCollatz is
         port(
 			SysClk  :in std_logic:='0';
 			Go :in std_logic := '0';
+			OutCNT :out std_logic_vector(7 downto 0) :=(others => '0') ;
+			OutINDEX     :out std_logic_vector(9 downto 0) :=(others => '0') ;
+			OutDATA     :out std_logic_vector(17 downto 0) :=(others => '0') ;
+			OutMX     :out std_logic_vector(17 downto 0) :=(others => '0') ;
+
 	 		OutMX1     :out std_logic_vector(17 downto 0):=(others => '0');
 	 		OutMX2     :out std_logic_vector(17 downto 0):=(others => '0');
 	 		OutMX3     :out std_logic_vector(17 downto 0):=(others => '0');
@@ -43,6 +53,10 @@ begin
 CL : Collatz port map(
     SysClk =>SysClk,
     Go => Go,
+	 OutCNT => OutCNT,
+	 OutINDEX => OutINDEX,
+	 OutDATA => OutDATA,
+	 OutMX => OutMX,
 	 OutMX1 => OutMX1,
 	 OutMX2 => OutMX2,
 	 OutMX3 => OutMX3,
@@ -65,7 +79,7 @@ end process ;
 process begin
     wait for 40 ns;
     Go <= '1';
-    wait for 100000 ns;
+    wait for 1000000 ns;
     Go <= '0';
     wait for 5500 ns;
     end process;
