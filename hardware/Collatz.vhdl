@@ -9,6 +9,7 @@ port(
 	 OutCNT :out std_logic_vector(7 downto 0) :=(others => '0') ;
 	 OutINDEX     :out std_logic_vector(9 downto 0) :=(others => '0') ;
 	 OutDATA     :out std_logic_vector(17 downto 0) :=(others => '0') ;
+    OutMX     :out std_logic_vector(17 downto 0) :=(others => '0') ;
 
 	 OutMX1     :out std_logic_vector(17 downto 0):=(others => '0');
 	 OutMX2     :out std_logic_vector(17 downto 0):=(others => '0');
@@ -136,7 +137,7 @@ begin
 							data <= "00" & data(17 downto 2);
 						elsif data(1 downto 0) = "01" then
 						  if mx < (data + (data(16 downto 0) & '1')) then
-							 mx <= data + (data(17 downto 1) & '1');
+							 mx <= data + (data(16 downto 0) & '1');
 						  end if;
 							cnt <= cnt + 3;
 							data <= ('0' & data(17 downto 2) & '1') + ("00" & data(17 downto 2));
@@ -147,10 +148,11 @@ begin
 							cnt <= cnt + 3;
 							data <= ('0' & data(17 downto 2) & '0') + ("00" & data(17 downto 2)) + "0000000000000010";
 						elsif data(1 downto 0) = "11" then
-						   if mx < ( ('0' & data(17 downto 1)) + ('0' & data(16 downto 0))
-							        + (data(17 downto 1) & '0') + (data(16 downto 0) & '1')) then 
-								mx <= ( ('0' & data(17 downto 1)) + ('0' & data(16 downto 0))
-							        + (data(17 downto 1) & '0') + (data(16 downto 0) & '1'));
+						   --if mx < ((data(16 downto 2) & "000") + (data(17 downto 2) & "00") + 
+							--        ('0' & data(16 downto 2) & "00") + ('0' & data(17 downto 2) & '0') + "0000000000010000");
+							if mx < ((data(15 downto 2) & "0000") + ('0' & data(17 downto 2) &'0') + "0000000000010000")
+							then 
+								mx <= ((data(15 downto 2) & "0000") + ('0' & data(17 downto 2) &'0') + "0000000000010000");
 							end if;
 							cnt <= cnt + 4;
 							data <= (data(16 downto 2) & "000") + ("00" & data(17 downto 2)) + "0000000000001000";
@@ -159,6 +161,7 @@ begin
 			  end if;
 		  end if;
 	end process;
+		  OutMX <= mx;
 		  OutCNT <= cnt;
 		  OutINDEX <= index;
 		  OutDATA <= data;
