@@ -1,4 +1,6 @@
 # coding: utf-8
+import logging
+#logging.basicConfig(level=logging.DEBUG)
 
 mx1 = 0
 mx2 = 0
@@ -17,33 +19,32 @@ name4 = 0
 
 clock = 0
 
-CACHE_SIZE = 1024
+CACHE_SIZE = 2048
+#TRACE_CHACHE_ON = False
 TRACE_CHACHE_ON = True
 
 # 途中通った時にどっから始めた回か？
 trace = [0 for i in range(CACHE_SIZE)]
-# 途中通った時にそれまでの最大値
-tracemx = [0 for i in range(CACHE_SIZE)]
 # 最初からのときは最後まで言った時の最大値
 memmx = [0 for i in range(CACHE_SIZE)]
 memlen = [0 for i in range(CACHE_SIZE)]
 
 for i in range(1, 1024, 2):
 #for i in range(1023, 2, -2):
-    print("searching...", i)
+    logging.info('searching... %d' % i)
     data = i
     cnt = 0
     mx = data
     while data != 1:
         clock += 1
-        #print(data)
+        logging.info(data)
         m = data % 4
         if data == 2:
             cnt += 1
             data = 1
         elif m == 0:
             cnt += 2
-            data //= 2
+            data //= 4
         elif m == 1:
             mx = max(3 * data + 1, mx)
             data = (3 * data + 1) // 4
@@ -53,9 +54,9 @@ for i in range(1, 1024, 2):
             data = (3 * (data // 2) + 1) // 2
             cnt += 3
         else:
-            mx = max(3 * data + 1, mx)
-            data = (3 * data + 1) // 2
-            cnt += 2 # ここもう少し勧められるが...
+            mx = max(3 * ((3 * data + 1)//2) + 1, mx)
+            data = (3 * ((3 * data + 1) // 2) + 1) // 2
+            cnt += 4
 
         if data < CACHE_SIZE:
             if memmx[data] != 0:
@@ -68,16 +69,18 @@ for i in range(1, 1024, 2):
                     # より、最後まで言った時(trace[data])
                     # の最大値の方がでかかったとき
                     if memmx[data] < memmx[trace[data]]:
-                        print('hit')
+                        logging.info('hit')
                         mx = max(mx, memmx[trace[data]])
                         cnt += (memlen[trace[data]] - memlen[data])
                         data = 1
                     elif mx >= memmx[data]:
-                        print('hit')
-                        data = 1
+                        logging.info('hit')
+                        # tmp = memlen[trace[data]] - memlen[data]
+                        # logging.debug(tmp)
                         cnt += (memlen[trace[data]] - memlen[data])
+                        data = 1
                     else:
-                        print('諦めた')
+                        logging.debug('諦めた')
             elif TRACE_CHACHE_ON:
                 memmx[data] = mx
                 memlen[data] = cnt
@@ -139,10 +142,9 @@ for i in range(1, 1024, 2):
         name4 = i
 
 '''
-41524 131 639
-118096 62 1023
-190996 178 871
-250504 173 937
+937 871 1023 639
+173 178 62 131
+250504 190996 118096 41524
 '''
 print(name1, name2, name3, name4)
 print(len1, len2, len3, len4)
