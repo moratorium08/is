@@ -31,11 +31,11 @@ architecture RTL of Collatz is
     signal index     :std_logic_vector(9 downto 0) :=(others => '0') ;
     signal mx     :std_logic_vector(17 downto 0) :=(others => '0') ;
     signal cnt     :std_logic_vector(7 downto 0) :=(others => '0') ;
-	 type T_TRACE is array(1 to 2048) of std_logic_vector(10 downto 0);
+	 type T_TRACE is array(0 to 2048) of std_logic_vector(9 downto 0);
 	 signal TRACE : T_TRACE := (others => (others => '0'));
-	 type T_MEMMX is array(1 to 2048) of std_logic_vector(17 downto 0);
+	 type T_MEMMX is array(0 to 2048) of std_logic_vector(17 downto 0);
 	 signal MEMMX : T_MEMMX := (others => (others => '0'));
-	 type T_MEMLEN is array(1 to 2048) of std_logic_vector(15 downto 0);
+	 type T_MEMLEN is array(0 to 2048) of std_logic_vector(7 downto 0);
 	 signal MEMLEN : T_MEMLEN := (others => (others => '0'));
 	 
 	 signal mx1     :std_logic_vector(17 downto 0):=(others => '0');
@@ -62,10 +62,19 @@ begin
 		  elsif done='1' then
 		  -- pass
 		  else
+		  	  if data < "0000100000000000" then
+					MEMMX(conv_integer(data)) <= mx;
+					MEMLEN(conv_integer(data)) <= cnt;
+					TRACE(conv_integer(data)) <= index;
+			  end if;
+
 		     if data="000000000000000001" then
 				   if index = "1111111111" then
 					 done <= '1';
 					end if;
+					MEMMX(conv_integer(index)) <= mx;
+					MEMLEN(conv_integer(index)) <= cnt;
+					TRACE(conv_integer(index)) <= "0000000000";
 					index <= index + 2;
 					data <= "00000000" & (index + 2);
 					mx <= "000000000000000000";
@@ -127,8 +136,8 @@ begin
 					 name4 <= index;
 					end if;
 			  else
-					--if data > "0000011111111111" then
-					if data=data then
+					if data > "0000011111111111" or MEMMX(conv_integer(data)) = "000000000000000000" then
+					--if data=data then
 						if data="000000000000000010" then 
 						  cnt <= cnt + 1;
 						  data <= "000000000000000001";
@@ -148,14 +157,58 @@ begin
 							cnt <= cnt + 3;
 							data <= ('0' & data(17 downto 2) & '0') + ("00" & data(17 downto 2)) + "0000000000000010";
 						elsif data(1 downto 0) = "11" then
-						   --if mx < ((data(16 downto 2) & "000") + (data(17 downto 2) & "00") + 
-							--        ('0' & data(16 downto 2) & "00") + ('0' & data(17 downto 2) & '0') + "0000000000010000");
 							if mx < ((data(15 downto 2) & "0000") + ('0' & data(17 downto 2) &'0') + "0000000000010000")
 							then 
 								mx <= ((data(15 downto 2) & "0000") + ('0' & data(17 downto 2) &'0') + "0000000000010000");
 							end if;
 							cnt <= cnt + 4;
 							data <= (data(16 downto 2) & "000") + ("00" & data(17 downto 2)) + "0000000000001000";
+						end if;
+					else
+						if TRACE(conv_integer(data)) = "0000000000" then
+							if mx < MEMMX(conv_integer(data)) then
+								mx <= MEMMX(conv_integer(data));
+							end if;
+							cnt <= cnt + MEMLEN(conv_integer(data));
+							data <= "000000000000000001";
+						else
+							if MEMMX(conv_integer(data)) < MEMMX(conv_integer(TRACE(conv_integer(data)))) then
+								if mx < MEMMX(conv_integer(TRACE(conv_integer(data)))) then
+									mx <=MEMMX(conv_integer(TRACE(conv_integer(data))));
+								end if;
+								cnt <= cnt + (MEMLEN(conv_integer(TRACE(conv_integer(data)))) - MEMLEN(conv_integer(data)));
+								data <= "000000000000000001";
+							elsif mx >= MEMMX(conv_integer(data)) then
+								cnt <= cnt + (MEMLEN(conv_integer(TRACE(conv_integer(data)))) - MEMLEN(conv_integer(data)));
+								data <= "000000000000000001";
+							else
+								if data="000000000000000010" then 
+									cnt <= cnt + 1;
+									data <= "000000000000000001";
+								elsif data(1 downto 0) = "00" then
+									cnt <= cnt + 2;
+									data <= "00" & data(17 downto 2);
+								elsif data(1 downto 0) = "01" then
+									if mx < (data + (data(16 downto 0) & '1')) then
+										mx <= data + (data(16 downto 0) & '1');
+									end if;
+									cnt <= cnt + 3;
+									data <= ('0' & data(17 downto 2) & '1') + ("00" & data(17 downto 2));
+								elsif data(1 downto 0) = "10" then
+									if mx < ( ('0' & data(17 downto 1)) + (data(17 downto 1) & '1')) then
+										mx <= ('0' & data(17 downto 1)) + (data(17 downto 1) & '1');
+									end if;
+									cnt <= cnt + 3;
+									data <= ('0' & data(17 downto 2) & '0') + ("00" & data(17 downto 2)) + "0000000000000010";
+								elsif data(1 downto 0) = "11" then
+									if mx < ((data(15 downto 2) & "0000") + ('0' & data(17 downto 2) &'0') + "0000000000010000")
+									then 
+										mx <= ((data(15 downto 2) & "0000") + ('0' & data(17 downto 2) &'0') + "0000000000010000");
+									end if;
+									cnt <= cnt + 4;
+									data <= (data(16 downto 2) & "000") + ("00" & data(17 downto 2)) + "0000000000001000";
+								end if;
+							end if;
 						end if;
 					end if;
 			  end if;
