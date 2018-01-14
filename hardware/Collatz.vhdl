@@ -62,7 +62,7 @@ begin
 		  elsif done='1' then
 		  -- pass
 		  else
-		  	  if data < "0000100000000000" then
+		  	  if data < "0000100000000000" and MEMMX(conv_integer(data))="000000000000000000" then
 					MEMMX(conv_integer(data)) <= mx;
 					MEMLEN(conv_integer(data)) <= cnt;
 					TRACE(conv_integer(data)) <= index;
